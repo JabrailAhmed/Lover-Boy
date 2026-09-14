@@ -1,0 +1,174 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager NavManager
+
+<div class="max-w-7xl mx-auto px-6 py-16 font-sans antialiased">
+    <!-- Header Section -->
+    <div class="text-center max-w-xl mx-auto mb-16">
+        <h1 class="text-4xl font-extrabold text-gray-950 tracking-tight sm:text-5xl">Dear You</h1>
+        <p class="text-gray-500 mt-4 text-base leading-relaxed">Create a beautiful, modern virtual postcard. Choose your aesthetic, pen your message, and share it instantly.</p>
+    </div>
+
+    <!-- Main Workspace Split: Postcard Preview on the Left, Controls on the Right -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        
+        <!-- Left Side: Live Sticky Postcard Preview -->
+        <div class="lg:col-span-6 lg:sticky lg:top-8 z-10">
+            <div class="postcard-preview @selectedTheme @selectedFont" style="font-size: @(fontSize)px;">
+                <div class="card-front">
+                    <div class="message-area">
+                        <p class="to-field">To: @cardData.To</p>
+                        <p class="body-field">@cardData.Message</p>
+                        <p class="from-field">From: @cardData.From</p>
+                    </div>
+                    
+                    <div class="stamp-area">
+                        @if (!string.IsNullOrEmpty(stampImageBase64))
+                        {
+                            <img src="@stampImageBase64" alt="Stamp Preview" class="stamp-img" />
+                        }
+                        else
+                        {
+                            <div class="stamp-placeholder">Stamp</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Sleek Modular Control Panel -->
+        <div class="lg:col-span-6 bg-white border border-gray-100 rounded-2xl shadow-xl shadow-gray-100/40 p-8 space-y-8">
+            
+            <!-- Row 1: Choose Palette (Left) & Typography (Right) -->
+            <div class="flex flex-col sm:flex-row gap-6 items-start">
+                
+                <!-- Left Side: Theme Selection -->
+                <div class="flex-1 w-full">
+                    <h3 class="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-3.5">1. Choose Palette</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" @onclick='() => selectedTheme = "theme-linen"' 
+                                class="px-2 py-3 text-xs font-medium border rounded-xl transition-all duration-200 cursor-pointer text-center @(selectedTheme == "theme-linen" ? "border-gray-950 bg-gray-950 text-white shadow-sm" : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50")">
+                            Warm Linen
+                        </button>
+                        <button type="button" @onclick='() => selectedTheme = "theme-sunset"' 
+                                class="px-2 py-3 text-xs font-medium border rounded-xl transition-all duration-200 cursor-pointer text-center @(selectedTheme == "theme-sunset" ? "border-gray-950 bg-gray-950 text-white shadow-sm" : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50")">
+                            Warm Sunset
+                        </button>
+                        <button type="button" @onclick='() => selectedTheme = "theme-forest"' 
+                                class="px-2 py-3 text-xs font-medium border rounded-xl transition-all duration-200 cursor-pointer text-center @(selectedTheme == "theme-forest" ? "border-gray-950 bg-gray-950 text-white shadow-sm" : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50")">
+                            Forest Mist
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Side: Typography Options -->
+                <div class="flex-1 w-full">
+                    <h3 class="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-3.5">2. Typography</h3>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button type="button" @onclick='() => selectedFont = "font-handwritten"' 
+                                class="px-2 py-3 text-xs font-medium border rounded-xl transition-all duration-200 cursor-pointer text-center @(selectedFont == "font-handwritten" ? "border-gray-950 bg-gray-950 text-white shadow-sm" : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50")">
+                            Handwritten
+                        </button>
+                        <button type="button" @onclick='() => selectedFont = "font-elegant"' 
+                                class="px-2 py-3 text-xs font-medium border rounded-xl transition-all duration-200 cursor-pointer text-center @(selectedFont == "font-elegant" ? "border-gray-950 bg-gray-950 text-white shadow-sm" : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50")">
+                            Elegant
+                        </button>
+                        <button type="button" @onclick='() => selectedFont = "font-modern"' 
+                                class="px-2 py-3 text-xs font-medium border rounded-xl transition-all duration-200 cursor-pointer text-center @(selectedFont == "font-modern" ? "border-gray-950 bg-gray-950 text-white shadow-sm" : "border-gray-200 text-gray-700 bg-white hover:bg-gray-50")">
+                            Modern
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3 bg-gray-50/70 px-3 py-2 rounded-xl border border-gray-100">
+                        <span class="text-[10px] font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Size</span>
+                        <input type="range" min="14" max="28" @bind="fontSize" @bind:event="oninput" class="w-full accent-gray-950 cursor-pointer" />
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Row 2: Message Data Setup -->
+            <div>
+                <h3 class="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-3.5">3. Content</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Left Side: Stacked Inputs -->
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">Recipient Name</label>
+                            <input type="text" placeholder="To" @bind="cardData.To" @bind:event="oninput" 
+                                   class="w-full px-4 py-3 bg-gray-50/70 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-4 focus:ring-gray-100 focus:outline-hidden transition-all duration-200 text-sm text-gray-950 placeholder-gray-400" />
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">Your Name</label>
+                            <input type="text" placeholder="From" @bind="cardData.From" @bind:event="oninput" 
+                                   class="w-full px-4 py-3 bg-gray-50/70 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-4 focus:ring-gray-100 focus:outline-hidden transition-all duration-200 text-sm text-gray-950 placeholder-gray-400" />
+                        </div>
+                    </div>
+                    
+                    <!-- Right Side: Textarea -->
+                    <div class="flex flex-col">
+                        <label class="block text-xs font-medium text-gray-400 mb-1.5 ml-1">Personal Message</label>
+                        <textarea placeholder="Write a thoughtful message..." @bind="cardData.Message" @bind:event="oninput" rows="5"
+                                  class="w-full h-full px-4 py-3 bg-gray-50/70 border border-gray-100 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-4 focus:ring-gray-100 focus:outline-hidden transition-all duration-200 text-sm text-gray-950 placeholder-gray-400 resize-none flex-1"></textarea>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Row 3: Stamp Upload -->
+            <div>
+                <h3 class="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-3.5">4. Add Postmark</h3>
+                <div class="flex items-center justify-center w-full">
+                    <label class="flex flex-col items-center justify-center w-full h-24 border border-gray-200 border-dashed rounded-xl cursor-pointer bg-gray-50/50 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <p class="text-xs text-gray-400 font-medium">Upload custom square stamp image</p>
+                        </div>
+                        <InputFile OnChange="HandleFileSelected" accept="image/*" class="hidden" />
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button class="w-full py-4 bg-gray-950 text-white font-medium rounded-xl hover:bg-gray-900 active:scale-98 transition-all duration-200 shadow-md shadow-gray-950/10 cursor-pointer mt-4" 
+                    @onclick="GenerateShareLink">
+                Generate Secure Link
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CardModel cardData = new();
+    private string selectedTheme = "theme-linen";
+    private string selectedFont = "font-handwritten";
+    private int fontSize = 18;
+    private string? stampImageBase64;
+
+    public class CardModel
+    {
+        public string To { get; set; } = "";
+        public string Message { get; set; } = "";
+        public string From { get; set; } = "";
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {        var file = e.File;
+        var resizedFile = await file.RequestImageFileAsync("image/jpeg", 200, 200);
+        
+        using var stream = resizedFile.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        
+        stampImageBase64 = $"data:image/jpeg;base64,{Convert.ToBase64String(ms.ToArray())}";
+        StateHasChanged();
+    }
+
+    private void GenerateShareLink()
+    {
+        var escapedMessage = Uri.EscapeDataString(cardData.Message);
+        var url = $"/view?to={cardData.To}&from={cardData.From}&msg={escapedMessage}&theme={selectedTheme}&font={selectedFont}";
+        NavManager.NavigateTo(url);
+    }
+}
+
